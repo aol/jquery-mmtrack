@@ -86,18 +86,33 @@
 				$(document.body).append(mmTrackIframe);
 			}
 
-			mmTrackUrl = [
-				protocol, "//",
-				omnitureConfig.host || host, "/mm_track/",
-				omnitureProp1,
-				omnitureProp2,
-				omniturePageName,
-				omnitureEnabled,
-				omnitureAccount,
-				omnitureChannel
-			].join("");
+			var tempOmni = {};
+			
+				$.each(omnitureConfig, function (key, val) {
+					if (typeof omnitureConfig[key] === 'string') {
+						if (key.match(/^prop/gi) && val !== '') {
+							tempOmni['s' + key.toLowerCase()] = val;
+						} else if (key.match(/^eVar/gi) && val !== '') {
+							var tempKey = key.toLowerCase();
+							tempOmni[tempKey] = val;
+						} else if (
+							key === 'account' ||
+							key === 'channel' ||
+							key === 'pageName' ||
+							key === 'products' ||
+							key === 'events'
+						) {
+							tempOmni[key] = val;
+						}
+					}
+				});
 
-			//console.log( mmTrackUrl );
+			mmTrackUrl = protocol + "//" +
+				(omnitureConfig.host || host) + "/mm_track/" + 
+				omnitureProp1 + omnitureProp2 +
+				omniturePageName + omnitureEnabled +
+				'&' + $.param(tempOmni);
+				
 			mmTrackIframe.src = mmTrackUrl + "&ts=" + (+new Date());
 
 			// Fire DataLayer Beacon vanity call, if the beacon object exists.
@@ -110,4 +125,5 @@
 			}
 		}
 	};
+	
 })(jQuery, window, document, location);
